@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WHLOL Admin — Login</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #ccc;
+            font-family: Consolas;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .box {
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 6px;
+            padding: 40px;
+            width: 320px;
+            text-align: center;
+        }
+        h1 {
+            color: #4ec9b0;
+            letter-spacing: 8px;
+            margin: 0 0 8px 0;
+            font-size: 24px;
+        }
+        .sub {
+            color: #444;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            background: #141414;
+            color: #eee;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-family: Consolas;
+            font-size: 13px;
+        }
+        input:focus {
+            outline: none;
+            border: 1px solid #4ec9b0;
+        }
+        button {
+            width: 100%;
+            background: #141414;
+            color: #4ec9b0;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: Consolas;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1a1a1a;
+            border: 1px solid #4ec9b0;
+        }
+        .error {
+            color: #ff5555;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>WHLOL</h1>
+        <div class="sub">ADMIN PANEL</div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            <input type="text" name="user" placeholder="Логин" autofocus>
+            <input type="password" name="pass" placeholder="Пароль">
+            <button type="submit">ВОЙТИ</button>
+        </form>
+    </div>
+</body>
+</html>
