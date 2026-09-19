@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WHLOL Admin</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #ccc;
+            font-family: Consolas;
+            margin: 0;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        h1 {
+            color: #4ec9b0;
+            letter-spacing: 8px;
+            margin: 0;
+            font-size: 28px;
+        }
+        .logout {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .logout:hover { color: #ff5555; }
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .stat {
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            padding: 14px 20px;
+            flex: 1;
+        }
+        .stat .num {
+            color: #4ec9b0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stat .lbl {
+            color: #666;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        th {
+            background: #141414;
+            color: #4ec9b0;
+            padding: 12px;
+            text-align: left;
+            font-size: 11px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #111;
+            font-size: 12px;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #111; }
+        .hwid {
+            color: #888;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .hwid:hover { color: #4ec9b0; }
+        .pc-name { color: #eee; }
+        .date { color: #666; font-size: 11px; }
+        .status-ok {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .status-banned {
+            color: #ff5555;
+            font-weight: bold;
+        }
+        .btn {
+            padding: 6px 12px;
+            border-radius: 3px;
+            border: 1px solid #2a2a2a;
+            background: #141414;
+            color: #ccc;
+            cursor: pointer;
+            font-family: Consolas;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        .btn-ban {
+            color: #ff5555;
+            border-color: #2a1010;
+        }
+        .btn-ban:hover {
+            background: #2a1010;
+            border-color: #ff5555;
+        }
+        .btn-unban {
+            color: #4ec9b0;
+            border-color: #1a3a30;
+        }
+        .btn-unban:hover {
+            background: #1a3a30;
+            border-color: #4ec9b0;
+        }
+        .refresh {
+            float: right;
+            margin-bottom: 8px;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>WHLOL</h1>
+    <a href="/logout" class="logout">ВЫЙТИ</a>
+</div>
+
+<div class="stats">
+    <div class="stat">
+        <div class="num" id="total">0</div>
+        <div class="lbl">ВСЕГО ЮЗЕРОВ</div>
+    </div>
+    <div class="stat">
+        <div class="num" id="banned-count">0</div>
+        <div class="lbl">ЗАБАНЕНО</div>
+    </div>
+    <div class="stat">
+        <div class="num" id="online">0</div>
+        <div class="lbl">ОНЛАЙН (5 мин)</div>
+    </div>
+</div>
+
+<button class="btn refresh" onclick="loadUsers()">ОБНОВИТЬ</button>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>HWID</th>
+            <th>ИМЯ ПК</th>
+            <th>ПЕРВЫЙ ЗАПУСК</th>
+            <th>ПОСЛЕДНИЙ</th>
+            <th>СТАТУС</th>
+            <th>ДЕЙСТВИЕ</th>
+        </tr>
+    </thead>
+    <tbody id="users-body">
+        <tr><td colspan="7" class="empty">Загрузка...</td></tr>
+    </tbody>
+</table>
+
+<script>
+async function loadUsers() {
+    try {
+        const r = await fetch('/api/users');
+        const data = await r.json();
+        if (!data.ok) return;
+
+        const users = data.users;
+        const tbody = document.getElementById('users-body');
+
+        document.getElementById('total').textContent = users.length;
+        document.getElementById('banned-count').textContent =
+            users.filter(u => u.banned).length;
+
+        const now = new Date();
+        const onlineCount = users.filter(u => {
+            const last = new Date(u.last_seen + 'Z');
+            return (now - last) < 5 * 60 * 1000;
+        }).length;
+        document.getElementById('online').textContent = onlineCount;
+
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty">Пока никого нет</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = users.map((u, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td>
+                    <span class="hwid" onclick="copyHwid('${u.hwid}')"
+                          title="Нажми чтобы скопировать">
+                        ${u.hwid.slice(0, 24)}...
+                    </span>
+                </td>
+                <td class="pc-name">${escapeHtml(u.pc_name)}</td>
+                <td class="date">${formatDate(u.first_seen)}</td>
+                <td class="date">${formatDate(u.last_seen)}</td>
+                <td>
+                    ${u.banned
+                        ? '<span class="status-banned">🚫 BANNED</span>'
+                        : '<span class="status-ok">✅ OK</span>'}
+                </td>
+                <td>
+                    ${u.banned
+                        ? `<button class="btn btn-unban" onclick="unban('${u.hwid}')">РАЗБАНИТЬ</button>`
+                        : `<button class="btn btn-ban" onclick="ban('${u.hwid}')">ЗАБАНИТЬ</button>`}
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'Z');
+    return d.toLocaleString('ru-RU', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
+function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
+async function ban(hwid) {
+    if (!confirm('Забанить ' + hwid + '?')) return;
+    await fetch('/api/ban', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({hwid})
+    });
+    loadUsers();
+}
+
+async function unban(hwid) {
+    if (!confirm('Разбанить ' + hwid + '?')) return;
+    await fetch('/api/unban', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({hwid})
+    });
+    loadUsers();
+}
+
+function copyHwid(hwid) {
+    navigator.clipboard.writeText(hwid);
+}
+
+loadUsers();
+setInterval(loadUsers, 15000);
+</script>
+
+</body>
+</html>
