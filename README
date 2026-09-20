@@ -1,0 +1,21 @@
+# WHLOL Server
+
+Сервер для чита WHLOL.
+
+**Функции:**
+- Регистрация HWID
+- Проверка бана
+- Админ-панель (бан/разбан)
+
+**made by FREAK1337**
+
+---
+
+## API
+
+- `POST /api/register` — регистрация HWID
+- `GET /api/check_ban?hwid=...` — проверка бана
+- `POST /api/ban` — забанить HWID (admin)
+- `POST /api/unban` — разбанить HWID (admin)
+
+## Админ-панель
